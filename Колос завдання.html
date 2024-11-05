@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інтерактивний Календар Подій</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .day { border: 1px solid #ccc; padding: 10px; position: relative; cursor: pointer; }
+        .event { background-color: #ffeb3b; padding: 5px; margin-top: 5px; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+        .modal-content { background: white; padding: 20px; margin: 100px auto; width: 300px; border-radius: 8px; }
+        .close { cursor: pointer; }
+        footer { margin-top: 20px; font-size: 0.9em; text-align: center; }
+    </style>
+</head>
+<body>
+
+<h1>Інтерактивний Календар Подій</h1>
+<div id="calendar" class="calendar"></div>
+
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Подія</h2>
+        <input type="text" id="eventInput" placeholder="Введіть подію">
+        <button id="saveEventButton" onclick="addEvent()">Додати подію</button>
+    </div>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Редагувати подію</h2>
+        <input type="text" id="editEventInput" placeholder="Редагуйте подію">
+        <button id="updateEventButton" onclick="updateEvent()">Зберегти</button>
+    </div>
+</div>
+
+<footer>
+    <p>Created by Mariia KOLOS</p>
+</footer>
+
+<script>
+    const events = {}; // Об'єкт для зберігання подій
+    let selectedDate = null; // Змінна для вибраної дати
+    let currentEventIndex = null; // Змінна для індексу події, що редагується
+
+    // Функція для створення календаря
+    function createCalendar(year, month) {
+        const calendarElement = document.getElementById('calendar');
+        calendarElement.innerHTML = ''; // Очищення попереднього вмісту
+
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day';
+            dayDiv.innerText = i;
+            dayDiv.onclick = () => openModal(i); // Відкриває модальне вікно для вибраного дня
+
+            // Додаємо події для конкретного дня
+            const eventList = events[`${year}-${month + 1}-${i}`] || [];
+            eventList.forEach((event, index) => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = 'event';
+                eventDiv.innerText = event;
+                eventDiv.onclick = (e) => {
+                    e.stopPropagation(); // Зупиняємо подію кліку
+                    openEditModal(i, index); // Відкриваємо модальне вікно редагування
+                };
+                dayDiv.appendChild(eventDiv);
+            });
+
+            calendarElement.appendChild(dayDiv); // Додаємо день до календаря
+        }
+    }
+
+    // Функція для відкриття модального вікна для додавання події
+    function openModal(day) {
+        selectedDate = `${2024}-${11}-${day < 10 ? '0' + day : day}`; // Формат дати
+        document.getElementById('eventModal').style.display = 'block'; // Показуємо модальне вікно
+        document.getElementById('eventInput').value = ''; // Очищуємо поле вводу
+    }
+
+    // Функція для закриття модального вікна
+    function closeModal() {
+        document.getElementById('eventModal').style.display = 'none';
+    }
+
+    // Функція для додавання події
+    function addEvent() {
+        const eventInput = document.getElementById('eventInput');
+        const eventText = eventInput.value.trim();
+        if (eventText) {
+            events[selectedDate] = events[selectedDate] || [];
+            events[selectedDate].push(eventText); // Додаємо подію до масиву подій
+            createCalendar(2024, 10); // Оновлюємо календар
+            closeModal(); // Закриваємо модальне вікно
+        }
+    }
+
+    // Функція для відкриття модального вікна редагування
+    function openEditModal(day, index) {
+        selectedDate = `${2024}-${11}-${day < 10 ? '0' + day : day}`; // Формат дати
+        currentEventIndex = index; // Запам'ятовуємо індекс події
+        document.getElementById('editEventInput').value = events[selectedDate][index]; // Встановлюємо текст події в поле редагування
+        document.getElementById('editModal').style.display = 'block'; // Показуємо модальне вікно редагування
+    }
+
+    // Функція для закриття модального вікна редагування
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Функція для оновлення події
+    function updateEvent() {
+        const editEventInput = document.getElementById('editEventInput');
+        const updatedText = editEventInput.value.trim();
+        if (updatedText) {
+            events[selectedDate][currentEventIndex] = updatedText; // Оновлюємо текст події
+            createCalendar(2024, 10); // Оновлюємо календар
+            closeEditModal(); // Закриваємо модальне вікно редагування
+        }
+    }
+
+    // Функція для видалення події
+    function deleteEvent(day, index) {
+        events[selectedDate].splice(index, 1); // Видаляємо подію
+        createCalendar(2024, 10); // Оновлюємо календар
+    }
+
+    // Ініціалізація календаря для листопада 2024 року
+    createCalendar(2024, 10);
+</script>
+
+</body>
+</html>
